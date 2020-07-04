@@ -1,0 +1,21 @@
+{
+  "name": "dms-userscript-toolkit",
+  "version": "0.0.1",
+  "description": "稻米鼠用户脚本工具集",
+  "author": "稻米鼠",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc && yarn typedoc",
+    "test": "yarn jest --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^26.0.3",
+    "jest": "^26.1.0",
+    "jsdoc": "^3.6.4",
+    "ts-jest": "^26.1.1",
+    "typedoc": "^0.17.8",
+    "typescript": "^3.9.5",
+    "uglify-js": "^3.10.0"
+  }
+}
