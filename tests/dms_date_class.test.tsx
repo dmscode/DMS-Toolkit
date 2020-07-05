@@ -14,6 +14,13 @@ test('时间格式化', () => {
       'zh'
     )
   ).toBe('1992/08/12 06-37-01 八月');
+  expect(
+    dms_date_class.format(
+      '1992-08-12 18:37:01',
+      'M YYYYYY/MM/DD hh-mm-ss MMMM',
+      'zh'
+    )
+  ).toBe('8 199292/08/12 06-37-01 八月');
 });
 it('时间差计算', ()=>{
   expect(

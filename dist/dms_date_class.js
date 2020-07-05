@@ -9,9 +9,20 @@ exports.__esModule = true;
  * - [x] 格式化时间
  * - [x] 时间计算
  * - [x] 时间增减量计算
- * - [ ] 农历
  * - [x] 今年多少天，当前第几天等
  * - [x] 尽量全使用静态方法
+ * - [ ] 农历
+ *   - [ ] 公历转农历
+ *   - [ ] 农历转公历
+ *   - [ ] 农历月日
+ *   - [ ] 干支纪年（生肖属相）
+ *   - [ ] 二十四节气
+ *   - [ ] 二十八星宿？（我不知道这个有什么用
+ *   - [ ] 农历节日
+ *   - [ ] 十二时辰
+ *   - [ ] 农历某年总天数
+ *   - [ ] 农历某月总天数
+ *   - [ ] 西方星座？（我不确定计算方法变没变，不了解
  */
 var dms_date = /** @class */ (function () {
     function dms_date() {
@@ -57,159 +68,10 @@ var dms_date = /** @class */ (function () {
         if (dateBase === void 0) { dateBase = new Date(); }
         if (format === void 0) { format = 'YYYY-MM-DD hh:mm:ss'; }
         if (lang === void 0) { lang = 'en'; }
-        /**
-         * 时间名称本地化对象
-         * @property { object } en
-         * @property { object } zh
-         */
-        var local = {
-            en: {
-                monthName: function (i) {
-                    return [
-                        'January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December',
-                    ][i];
-                },
-                monthNameShort: function (i) {
-                    return [
-                        'Jan',
-                        'Feb',
-                        'Mar',
-                        'Apr',
-                        'May',
-                        'Jun',
-                        'Jul',
-                        'Aug',
-                        'Sep',
-                        'Oct',
-                        'Nov',
-                        'Dec',
-                    ][i];
-                },
-                dayName: function (i) {
-                    return [
-                        'Sunday',
-                        'Monday',
-                        'Tuesday',
-                        'Wednesday',
-                        'Thursday',
-                        'Friday',
-                        'Saturday',
-                    ][i];
-                },
-                dayNameShort: function (i) {
-                    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i];
-                },
-                meridiem: function (h) { return ['AM', 'PM'][Math.floor(h / 12)]; },
-                meridiemShort: function (h) { return ['A', 'P'][Math.floor(h / 12)]; }
-            },
-            zh: {
-                monthName: function (i) {
-                    return [
-                        '一',
-                        '二',
-                        '三',
-                        '四',
-                        '五',
-                        '六',
-                        '七',
-                        '八',
-                        '九',
-                        '十',
-                        '十一',
-                        '十二',
-                    ][i] + '月';
-                },
-                monthNameShort: function (i) { return i + 1 + ' 月'; },
-                dayName: function (i) {
-                    return '周' + ['日', '一', '二', '三', '四', '五', '六'][i];
-                },
-                dayNameShort: function (i) {
-                    return '星期' + ['日', '一', '二', '三', '四', '五', '六'][i];
-                },
-                meridiem: function (h) { return ['上午', '下午'][Math.floor(h / 12)]; },
-                meridiemShort: function (h) { return ['晨', '昏'][Math.floor(h / 12)]; }
-            }
-        };
-        var dateObj = {};
-        dateBase = this.dateIt(dateBase);
-        dateObj.YYYY = dateBase.getFullYear();
-        dateObj.M = dateBase.getMonth() + 1;
-        dateObj.D = dateBase.getDate();
-        dateObj.dayIndex = dateBase.getDay();
-        dateObj.H = dateBase.getHours();
-        dateObj.h = dateObj.H % 12 === 0 ? 12 : dateObj.H % 12;
-        dateObj.m = dateBase.getMinutes();
-        dateObj.s = dateBase.getSeconds();
-        dateObj.fff = this.addPadding(dateBase.getMilliseconds(), 3);
-        dateObj.ff = (this.addPadding(Math.floor(dateBase.getMilliseconds() / 10)));
-        dateObj.f = Math.floor(dateBase.getMilliseconds() / 100);
-        dateObj.zzzz = this.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)) +
-            ':' +
-            this.addPadding(-dateBase.getTimezoneOffset() % 60);
-        dateObj.zzz = ((Math.floor(-dateBase.getTimezoneOffset() / 60) +
-            ':' +
-            this.addPadding(-dateBase.getTimezoneOffset() % 60)));
-        dateObj.zz = (this.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)));
-        dateObj.z = Math.floor(-dateBase.getTimezoneOffset() / 60);
-        dateObj.YY = dateObj.YYYY.toString().substring(2);
-        dateObj.MMMM = local[lang].monthName(+dateObj.M - 1);
-        dateObj.MMM = local[lang].monthNameShort(+dateObj.M - 1);
-        dateObj.MM = this.addPadding(+dateObj.M);
-        dateObj.DDDD = local[lang].dayName(dateObj.dayIndex);
-        dateObj.DDD = local[lang].dayNameShort(dateObj.dayIndex);
-        dateObj.DD = this.addPadding(+dateObj.D);
-        dateObj.HH = this.addPadding(+dateObj.H);
-        dateObj.hh = this.addPadding(+dateObj.h);
-        dateObj.mm = this.addPadding(+dateObj.m);
-        dateObj.ss = this.addPadding(+dateObj.s);
-        dateObj.TT = local[lang].meridiem(dateObj.h);
-        dateObj.T = local[lang].meridiemShort(dateObj.h);
-        dateObj.tt = dateObj.TT.toLowerCase();
-        dateObj.t = dateObj.T.toLowerCase();
-        var formatLetters = format.split('');
-        var formatArr = [];
-        var temp = {
-            nowLetter: '',
-            nowWord: ''
-        };
-        for (var i = 0; i < formatLetters.length; i++) {
-            // 如果没有缓存字符串，那么缓存
-            if (temp.nowWord.length === 0) {
-                temp.nowLetter = formatLetters[i];
-                temp.nowWord = formatLetters[i];
-                continue;
-            }
-            // <存在缓存>
-            // 如果当前字符和前一个字符不同，将缓存推入数组，重新开始缓存
-            if (formatLetters[i] !== temp.nowLetter) {
-                formatArr.push(temp.nowWord in dateObj
-                    ? String(dateObj[temp.nowWord])
-                    : temp.nowWord);
-                temp.nowLetter = formatLetters[i];
-                temp.nowWord = formatLetters[i];
-                continue;
-            }
-            // 追加到缓存中
-            temp.nowWord += formatLetters[i];
-            continue;
-        }
-        if (temp.nowWord.length !== 0) {
-            formatArr.push(temp.nowWord in dateObj
-                ? String(dateObj[temp.nowWord])
-                : temp.nowWord);
-        }
-        return formatArr.join('');
+        var dateObj = dms_date.decompose(dateBase, lang);
+        var keys = Object.keys(dateObj).sort(function (k1, k2) { return k2.length - k1.length; });
+        var reg = new RegExp(keys.join('|'), 'g');
+        return format.replace(reg, function (m) { return String(dateObj[m]); });
     };
     /**
      * 时间差计算
@@ -378,6 +240,140 @@ var dms_date = /** @class */ (function () {
             zeroArr.push('0');
         var longNum = zeroArr.join('') + String(num);
         return longNum.substr(longNum.length - digits, longNum.length);
+    };
+    /**
+     * 对时间进行分解
+     *
+     * @static
+     * @memberof dms_date
+     * @param {(string|number|Date)} dateBase 需要被格式的时间（默认为当前时间）
+     * @param {string} lang 语言，可选 `en` 和 `zh`
+     * @returns 分解后的对象
+     */
+    dms_date.decompose = function (dateBase, lang) {
+        if (dateBase === void 0) { dateBase = new Date(); }
+        if (lang === void 0) { lang = 'en'; }
+        /**
+         * 时间名称本地化对象
+         * @property { object } en
+         * @property { object } zh
+         */
+        var local = {
+            en: {
+                monthName: function (i) {
+                    return [
+                        'January',
+                        'February',
+                        'March',
+                        'April',
+                        'May',
+                        'June',
+                        'July',
+                        'August',
+                        'September',
+                        'October',
+                        'November',
+                        'December',
+                    ][i];
+                },
+                monthNameShort: function (i) {
+                    return [
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'May',
+                        'Jun',
+                        'Jul',
+                        'Aug',
+                        'Sep',
+                        'Oct',
+                        'Nov',
+                        'Dec',
+                    ][i];
+                },
+                dayName: function (i) {
+                    return [
+                        'Sunday',
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                    ][i];
+                },
+                dayNameShort: function (i) {
+                    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i];
+                },
+                meridiem: function (h) { return ['AM', 'PM'][Math.floor(h / 12)]; },
+                meridiemShort: function (h) { return ['A', 'P'][Math.floor(h / 12)]; }
+            },
+            zh: {
+                monthName: function (i) {
+                    return [
+                        '一',
+                        '二',
+                        '三',
+                        '四',
+                        '五',
+                        '六',
+                        '七',
+                        '八',
+                        '九',
+                        '十',
+                        '十一',
+                        '十二',
+                    ][i] + '月';
+                },
+                monthNameShort: function (i) { return i + 1 + ' 月'; },
+                dayName: function (i) {
+                    return '周' + ['日', '一', '二', '三', '四', '五', '六'][i];
+                },
+                dayNameShort: function (i) {
+                    return '星期' + ['日', '一', '二', '三', '四', '五', '六'][i];
+                },
+                meridiem: function (h) { return ['上午', '下午'][Math.floor(h / 12)]; },
+                meridiemShort: function (h) { return ['晨', '昏'][Math.floor(h / 12)]; }
+            }
+        };
+        var dateObj = {};
+        dateBase = dms_date.dateIt(dateBase);
+        dateObj.YYYY = dateBase.getFullYear();
+        dateObj.M = dateBase.getMonth() + 1;
+        dateObj.D = dateBase.getDate();
+        dateObj.dayIndex = dateBase.getDay();
+        dateObj.H = dateBase.getHours();
+        dateObj.h = dateObj.H % 12 === 0 ? 12 : dateObj.H % 12;
+        dateObj.m = dateBase.getMinutes();
+        dateObj.s = dateBase.getSeconds();
+        dateObj.fff = dms_date.addPadding(dateBase.getMilliseconds(), 3);
+        dateObj.ff = (dms_date.addPadding(Math.floor(dateBase.getMilliseconds() / 10)));
+        dateObj.f = Math.floor(dateBase.getMilliseconds() / 100);
+        dateObj.zzzz = dms_date.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)) +
+            ':' +
+            dms_date.addPadding(-dateBase.getTimezoneOffset() % 60);
+        dateObj.zzz = ((Math.floor(-dateBase.getTimezoneOffset() / 60) +
+            ':' +
+            dms_date.addPadding(-dateBase.getTimezoneOffset() % 60)));
+        dateObj.zz = (dms_date.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)));
+        dateObj.z = Math.floor(-dateBase.getTimezoneOffset() / 60);
+        dateObj.YY = dateObj.YYYY.toString().substring(2);
+        dateObj.MMMM = local[lang].monthName(+dateObj.M - 1);
+        dateObj.MMM = local[lang].monthNameShort(+dateObj.M - 1);
+        dateObj.MM = dms_date.addPadding(+dateObj.M);
+        dateObj.DDDD = local[lang].dayName(dateObj.dayIndex);
+        dateObj.DDD = local[lang].dayNameShort(dateObj.dayIndex);
+        dateObj.DD = dms_date.addPadding(+dateObj.D);
+        dateObj.HH = dms_date.addPadding(+dateObj.H);
+        dateObj.hh = dms_date.addPadding(+dateObj.h);
+        dateObj.mm = dms_date.addPadding(+dateObj.m);
+        dateObj.ss = dms_date.addPadding(+dateObj.s);
+        dateObj.TT = local[lang].meridiem(dateObj.h);
+        dateObj.T = local[lang].meridiemShort(dateObj.h);
+        dateObj.tt = dateObj.TT.toLowerCase();
+        dateObj.t = dateObj.T.toLowerCase();
+        return dateObj;
     };
     return dms_date;
 }());

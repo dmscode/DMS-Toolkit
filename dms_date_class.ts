@@ -7,9 +7,20 @@
  * - [x] 格式化时间
  * - [x] 时间计算
  * - [x] 时间增减量计算
- * - [ ] 农历
  * - [x] 今年多少天，当前第几天等
  * - [x] 尽量全使用静态方法
+ * - [ ] 农历
+ *   - [ ] 公历转农历
+ *   - [ ] 农历转公历
+ *   - [ ] 农历月日
+ *   - [ ] 干支纪年（生肖属相）
+ *   - [ ] 二十四节气
+ *   - [ ] 二十八星宿？（我不知道这个有什么用
+ *   - [ ] 农历节日
+ *   - [ ] 十二时辰
+ *   - [ ] 农历某年总天数
+ *   - [ ] 农历某月总天数
+ *   - [ ] 西方星座？（我不确定计算方法变没变，不了解
  */
 class dms_date {
   /**
@@ -49,54 +60,25 @@ class dms_date {
    * @returns {string} 两位数字的字符串
    * @memberof dms_date
    */
-  public static addPadding = (num: number | string, digits: number = 2): string => {
+  private static addPadding = (num: number | string, digits: number = 2): string => {
     const zeroArr: string[] = [];
     for (let i = 0; i < digits; i++) zeroArr.push('0');
     const longNum = zeroArr.join('') + String(num);
     return longNum.substr(longNum.length - digits, longNum.length);
   };
   /**
-   * 时间格式化函数
+   * 对时间进行分解
    *
-   * @param {string|number|Date} dateBase 需要被格式的时间（默认为当前时间）
-   * @param {string} format 希望格式
-   * - YYYY: 四位数年
-   * - YY  : 两位数年
-   * - MMMM: 月名称
-   * - MMM : 月名称缩写
-   * - MM  : 两位数月（01-12）
-   * - M   : 自动位数月（1-12）
-   * - DDDD: 星期几
-   * - DDD : 星期几缩写
-   * - DD  : 两位数日（01-31）
-   * - D   : 自动位数日（1-31）
-   * - HH  : 两位数时（二十四小时制）（00-23）
-   * - H   : 自动位数时（二十四小时制）（0-23）
-   * - hh  : 两位数时（十二小时制）（01-12）
-   * - h   : 自动位数时（十二小时制）（1-12）
-   * - mm  : 两位数分（00-59）
-   * - m   : 自动位数分（0-59）
-   * - ss  : 两位数秒（00-59）
-   * - s   : 自动位数秒（0-59）
-   * - f   : 时分秒
-   * - ff  : 百分秒
-   * - fff : 千分秒
-   * - tt  : 上午/下午（小写）
-   * - t   : 晨/昏（小写）
-   * - TT  : 上午/下午
-   * - T   : 晨/昏
-   * - zzzz: 四位时区（例如-05：00）
-   * - zzz : 三位时区（例如-5：00）
-   * - zz  : 两位时区（例如-05）
-   * - z   : 一位时区（例如-5）
+   * @static
+   * @memberof dms_date
+   * @param {(string|number|Date)} dateBase 需要被格式的时间（默认为当前时间）
    * @param {string} lang 语言，可选 `en` 和 `zh`
-   * @returns {string} 格式后的时间字符串
+   * @returns 分解后的对象
    */
-  public static format(
+  public static decompose = (
     dateBase: string|number|Date = new Date(),
-    format: string = 'YYYY-MM-DD hh:mm:ss',
     lang: string = 'en'
-  ): string {
+  ):{[key:string]: string|number}=>{
     interface localObject {
       [key: string]: {
         [key: string]: Function;
@@ -180,7 +162,7 @@ class dms_date {
       },
     };
     const dateObj:{[key: string]: string|number} = {}
-    dateBase = this.dateIt(dateBase)
+    dateBase = dms_date.dateIt(dateBase)
     dateObj.YYYY     = <number>dateBase.getFullYear();
     dateObj.M        = <number>dateBase.getMonth() + 1;
     dateObj.D        = <number>dateBase.getDate();
@@ -189,76 +171,86 @@ class dms_date {
     dateObj.h        = <number>dateObj.H % 12 === 0 ? 12 : dateObj.H % 12;
     dateObj.m        = <number>dateBase.getMinutes();
     dateObj.s        = <number>dateBase.getSeconds();
-    dateObj.fff      = <string>this.addPadding(dateBase.getMilliseconds(), 3);
+    dateObj.fff      = <string>dms_date.addPadding(dateBase.getMilliseconds(), 3);
     dateObj.ff       = <string>(
-      this.addPadding(Math.floor(dateBase.getMilliseconds() / 10))
+      dms_date.addPadding(Math.floor(dateBase.getMilliseconds() / 10))
     );
     dateObj.f    = <number>Math.floor(dateBase.getMilliseconds() / 100);
-    dateObj.zzzz = <string>this.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)) +
+    dateObj.zzzz = <string>dms_date.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60)) +
       ':' +
-      this.addPadding(-dateBase.getTimezoneOffset() % 60);
+      dms_date.addPadding(-dateBase.getTimezoneOffset() % 60);
     dateObj.zzz = <string>(
       (Math.floor(-dateBase.getTimezoneOffset() / 60) +
         ':' +
-        this.addPadding(-dateBase.getTimezoneOffset() % 60))
+        dms_date.addPadding(-dateBase.getTimezoneOffset() % 60))
     );
     dateObj.zz = <string>(
-      this.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60))
+      dms_date.addPadding(Math.floor(-dateBase.getTimezoneOffset() / 60))
     );
     dateObj.z    = <number>Math.floor(-dateBase.getTimezoneOffset() / 60);
     dateObj.YY   = <string>dateObj.YYYY.toString().substring(2);
     dateObj.MMMM = <string>local[lang].monthName(+dateObj.M - 1);
     dateObj.MMM  = <string>local[lang].monthNameShort(+dateObj.M - 1);
-    dateObj.MM   = <string>this.addPadding(+dateObj.M);
+    dateObj.MM   = <string>dms_date.addPadding(+dateObj.M);
     dateObj.DDDD = <string>local[lang].dayName(dateObj.dayIndex);
     dateObj.DDD  = <string>local[lang].dayNameShort(dateObj.dayIndex);
-    dateObj.DD   = <string>this.addPadding(+dateObj.D);
-    dateObj.HH   = <string>this.addPadding(+dateObj.H);
-    dateObj.hh   = <string>this.addPadding(+dateObj.h);
-    dateObj.mm   = <string>this.addPadding(+dateObj.m);
-    dateObj.ss   = <string>this.addPadding(+dateObj.s);
+    dateObj.DD   = <string>dms_date.addPadding(+dateObj.D);
+    dateObj.HH   = <string>dms_date.addPadding(+dateObj.H);
+    dateObj.hh   = <string>dms_date.addPadding(+dateObj.h);
+    dateObj.mm   = <string>dms_date.addPadding(+dateObj.m);
+    dateObj.ss   = <string>dms_date.addPadding(+dateObj.s);
     dateObj.TT   = <string>local[lang].meridiem(dateObj.h);
     dateObj.T    = <string>local[lang].meridiemShort(dateObj.h);
     dateObj.tt   = <string>dateObj.TT.toLowerCase();
     dateObj.t    = <string>dateObj.T.toLowerCase();
-
-    const formatLetters = format.split('');
-    const formatArr: string[] = [];
-    const temp: { nowLetter: string; nowWord: string } = {
-      nowLetter: '',
-      nowWord: '',
-    };
-    for (let i = 0; i < formatLetters.length; i++) {
-      // 如果没有缓存字符串，那么缓存
-      if (temp.nowWord.length === 0) {
-        temp.nowLetter = formatLetters[i];
-        temp.nowWord = formatLetters[i];
-        continue;
-      }
-      // <存在缓存>
-      // 如果当前字符和前一个字符不同，将缓存推入数组，重新开始缓存
-      if (formatLetters[i] !== temp.nowLetter) {
-        formatArr.push(
-          temp.nowWord in dateObj
-            ? String(dateObj[temp.nowWord])
-            : temp.nowWord
-        );
-        temp.nowLetter = formatLetters[i];
-        temp.nowWord = formatLetters[i];
-        continue;
-      }
-      // 追加到缓存中
-      temp.nowWord += formatLetters[i];
-      continue;
-    }
-    if (temp.nowWord.length !== 0) {
-      formatArr.push(
-        temp.nowWord in dateObj
-          ? String(dateObj[temp.nowWord])
-          : temp.nowWord
-      );
-    }
-    return formatArr.join('');
+    return dateObj
+  }
+  /**
+   * 时间格式化函数
+   *
+   * @param {string|number|Date} dateBase 需要被格式的时间（默认为当前时间）
+   * @param {string} format 希望格式
+   * - YYYY: 四位数年
+   * - YY  : 两位数年
+   * - MMMM: 月名称
+   * - MMM : 月名称缩写
+   * - MM  : 两位数月（01-12）
+   * - M   : 自动位数月（1-12）
+   * - DDDD: 星期几
+   * - DDD : 星期几缩写
+   * - DD  : 两位数日（01-31）
+   * - D   : 自动位数日（1-31）
+   * - HH  : 两位数时（二十四小时制）（00-23）
+   * - H   : 自动位数时（二十四小时制）（0-23）
+   * - hh  : 两位数时（十二小时制）（01-12）
+   * - h   : 自动位数时（十二小时制）（1-12）
+   * - mm  : 两位数分（00-59）
+   * - m   : 自动位数分（0-59）
+   * - ss  : 两位数秒（00-59）
+   * - s   : 自动位数秒（0-59）
+   * - f   : 时分秒
+   * - ff  : 百分秒
+   * - fff : 千分秒
+   * - tt  : 上午/下午（小写）
+   * - t   : 晨/昏（小写）
+   * - TT  : 上午/下午
+   * - T   : 晨/昏
+   * - zzzz: 四位时区（例如-05：00）
+   * - zzz : 三位时区（例如-5：00）
+   * - zz  : 两位时区（例如-05）
+   * - z   : 一位时区（例如-5）
+   * @param {string} lang 语言，可选 `en` 和 `zh`
+   * @returns {string} 格式后的时间字符串
+   */
+  public static format(
+    dateBase: string|number|Date = new Date(),
+    format: string = 'YYYY-MM-DD hh:mm:ss',
+    lang: string = 'en'
+  ): string {
+    const dateObj = dms_date.decompose(dateBase, lang)
+    const keys = Object.keys(dateObj).sort( (k1, k2)=>k2.length-k1.length)
+    const reg = new RegExp(keys.join('|'), 'g')
+    return format.replace(reg, m=>String(dateObj[m]));
   }
   /**
    * 时间差计算

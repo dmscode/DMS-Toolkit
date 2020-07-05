@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc && yarn typedoc",
-    "test": "yarn jest --coverage"
+    "test": "yarn jest --coverage",
+    "mini": "uglifyjs ./dist/dms_date_class.js -o ./dist/dms_date_class.min.js"
   },
   "dependencies": {},
   "devDependencies": {
